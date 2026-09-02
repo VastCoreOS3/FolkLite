@@ -207,14 +207,14 @@ class MainActivity : AppCompatActivity() {
                     val aPatchReady = state == APApplication.State.ANDROIDPATCH_INSTALLED
                     val prefs = APApplication.sharedPreferences
                     var showNavApm by remember { mutableStateOf(prefs.getBoolean("show_nav_apm", true)) }
-                    var showNavKpm by remember { mutableStateOf(prefs.getBoolean("show_nav_kpm", true)) }
+                    var showNavKpm by remember { mutableStateOf(prefs.getBoolean("show_nav_kpm", false)) }
                     var showNavSuperUser by remember { mutableStateOf(prefs.getBoolean("show_nav_superuser", true)) }
 
                     DisposableEffect(Unit) {
                         val listener = SharedPreferences.OnSharedPreferenceChangeListener { sharedPrefs, key ->
                             when (key) {
                                 "show_nav_apm" -> showNavApm = sharedPrefs.getBoolean(key, true)
-                                "show_nav_kpm" -> showNavKpm = sharedPrefs.getBoolean(key, true)
+                                "show_nav_kpm" -> showNavKpm = sharedPrefs.getBoolean(key, false)
                                 "show_nav_superuser" -> showNavSuperUser = sharedPrefs.getBoolean(key, true)
                             }
                         }
@@ -534,14 +534,14 @@ private fun BottomBar(
 
     val prefs = APApplication.sharedPreferences
     var showNavApm by remember { mutableStateOf(prefs.getBoolean("show_nav_apm", true)) }
-    var showNavKpm by remember { mutableStateOf(prefs.getBoolean("show_nav_kpm", true)) }
+    var showNavKpm by remember { mutableStateOf(prefs.getBoolean("show_nav_kpm", false)) }
     var showNavSuperUser by remember { mutableStateOf(prefs.getBoolean("show_nav_superuser", true)) }
 
     DisposableEffect(Unit) {
         val listener = SharedPreferences.OnSharedPreferenceChangeListener { sharedPrefs, key ->
             when (key) {
                 "show_nav_apm" -> showNavApm = sharedPrefs.getBoolean(key, true)
-                "show_nav_kpm" -> showNavKpm = sharedPrefs.getBoolean(key, true)
+                "show_nav_kpm" -> showNavKpm = sharedPrefs.getBoolean(key, false)
                 "show_nav_superuser" -> showNavSuperUser = sharedPrefs.getBoolean(key, true)
             }
         }
