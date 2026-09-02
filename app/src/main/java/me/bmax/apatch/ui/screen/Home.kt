@@ -132,7 +132,6 @@ fun HomeScreen(navigator: TabNavigator) {
     }
 
     when (homeLayout) {
-        "list" -> ListHomeScreen(navigator)
         "default" -> MainHomeScreen(navigator)
         else -> ClassicHomeScreen(navigator)
     }
