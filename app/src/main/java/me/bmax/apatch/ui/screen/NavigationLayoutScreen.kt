@@ -34,7 +34,7 @@ fun NavigationLayoutScreen(navigator: TabNavigator) {
         mutableStateOf(prefs.getBoolean("show_nav_apm", true))
     }
     var showNavKpm by rememberSaveable {
-        mutableStateOf(prefs.getBoolean("show_nav_kpm", true))
+        mutableStateOf(prefs.getBoolean("show_nav_kpm", false))
     }
     var showNavSuperUser by rememberSaveable {
         mutableStateOf(prefs.getBoolean("show_nav_superuser", true))
