@@ -234,6 +234,8 @@
     <string name="settings_use_system_color_theme_summary">使用由系统由壁纸取色生成的主题</string>
     <string name="settings_custom_color_theme">颜色主题</string>
     <string name="settings_home_layout_style">主页布局样式</string>
+    <string name="settings_home_layout_default" translatable="false">网格</string>
+    <string name="settings_home_layout_classic" translatable="false">经典</string>
     <string name="amber_theme">琥珀色主题</string>
     <string name="blue_theme">蓝色主题</string>
     <string name="blue_grey_theme">蓝灰色主题</string>
