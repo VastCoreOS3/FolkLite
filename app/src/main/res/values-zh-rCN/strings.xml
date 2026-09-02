@@ -351,9 +351,9 @@
     <string name="settings_section_about">日志</string>
 
     <!-- Seed Color -->
-    <string name="settings_key_color">颜色</string>
-    <string name="settings_key_color_summary">选择 Monet 主题颜色</string>
-    <string name="settings_key_color_default">默认</string>
+    <string name="settings_key_color">种子颜色</string>
+    <string name="settings_key_color_summary">选择 Monet 主题的种子颜色</string>
+    <string name="settings_key_color_default">默认（壁纸）</string>
     <string name="color_red">红色</string>
     <string name="color_pink">粉色</string>
     <string name="color_purple">紫色</string>
