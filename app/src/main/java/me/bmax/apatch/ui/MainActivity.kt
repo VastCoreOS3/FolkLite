@@ -406,63 +406,73 @@ class MainActivity : AppCompatActivity() {
 
                     Scaffold(
                         containerColor = MiuixTheme.colorScheme.surface,
-                        bottomBar = {
-                            if (enableFloatingBottomBar && backdrop != null) {
-                                val animatedOffsetY by animateDpAsState(
-                                    targetValue = if (showBottomBar) 0.dp else 200.dp,
-                                    animationSpec = tween(durationMillis = 300),
-                                    label = "floatingBarOffset"
-                                )
-                                Box(modifier = Modifier.offset(y = animatedOffsetY)) {
-                                    BottomBar(
-                                        mainPagerState = mainPagerState,
-                                        enableBlur = enableBlur,
-                                        enableFloatingBottomBar = true,
-                                        enableLiquidGlass = enableLiquidGlass,
-                                        hazeState = hazeState,
-                                        hazeStyle = hazeStyle,
-                                        backdrop = backdrop,
-                                        onUserInteraction = { resetBottomBarAutoHide() },
-                                    )
-                                }
-                            } else if (showBottomBar) {
-                                BottomBar(
-                                    mainPagerState = mainPagerState,
-                                    enableBlur = enableBlur,
-                                    enableFloatingBottomBar = false,
-                                    enableLiquidGlass = false,
-                                    hazeState = hazeState,
-                                    hazeStyle = hazeStyle,
-                                    backdrop = backdrop,
-                                )
-                            }
-                        }
+                        bottomBar = {}
                     ) {
                         CompositionLocalProvider(
                             LocalExternalNavEvent provides if (navEventConsumed) null else externalNavEvent
                         ) {
-                        MainScreen(
-                            modifier = Modifier
-                                .then(
-                                    if (enableFloatingBottomBar) Modifier.nestedScroll(scrollConnection)
-                                    else Modifier
+                            Box(modifier = Modifier.fillMaxSize()) {
+                                MainScreen(
+                                    modifier = Modifier
+                                        .then(
+                                            if (enableFloatingBottomBar) Modifier.nestedScroll(scrollConnection)
+                                            else Modifier
+                                        )
+                                        .padding(bottom = if (showBottomBar) {
+                                            if (enableFloatingBottomBar) 0.dp else 65.dp
+                                        } else 0.dp)
+                                        .then(
+                                            if (enableBlur && showBottomBar && hazeState != null) Modifier.hazeSource(state = hazeState)
+                                            else Modifier
+                                        )
+                                        .then(
+                                            if (enableFloatingBottomBar && enableBlur && showBottomBar && backdrop != null)
+                                                Modifier.layerBackdrop(backdrop)
+                                            else Modifier
+                                        ),
+                                    onExternalNavConsumed = { navEventConsumed = true },
                                 )
-                                .padding(bottom = if (showBottomBar) {
-                                    if (enableFloatingBottomBar) 0.dp else 65.dp
-                                } else 0.dp)
-                                .then(
-                                    if (enableBlur && showBottomBar && hazeState != null) Modifier.hazeSource(state = hazeState)
-                                    else Modifier
-                                )
-                                .then(
-                                    if (enableFloatingBottomBar && enableBlur && showBottomBar && backdrop != null)
-                                        Modifier.layerBackdrop(backdrop)
-                                    else Modifier
-                                ),
-                            onExternalNavConsumed = { navEventConsumed = true },
-                        )
+                    
+                                // 将底部栏移到Box内部叠加层
+                                if (enableFloatingBottomBar && backdrop != null) {
+                                    val animatedOffsetY by animateDpAsState(
+                                        targetValue = if (showBottomBar) 0.dp else 200.dp,
+                                        animationSpec = tween(durationMillis = 300),
+                                        label = "floatingBarOffset"
+                                    )
+                                    Box(
+                                        modifier = Modifier
+                                            .align(Alignment.BottomCenter)
+                                            .offset(y = animatedOffsetY)
+                                    ) {
+                                        BottomBar(
+                                            mainPagerState = mainPagerState,
+                                            enableBlur = enableBlur,
+                                            enableFloatingBottomBar = true,
+                                            enableLiquidGlass = enableLiquidGlass,
+                                            hazeState = hazeState,
+                                            hazeStyle = hazeStyle,
+                                            backdrop = backdrop,
+                                            onUserInteraction = { resetBottomBarAutoHide() },
+                                        )
+                                    }
+                                } else if (showBottomBar) {
+                                    Box(modifier = Modifier.align(Alignment.BottomCenter)) {
+                                        BottomBar(
+                                            mainPagerState = mainPagerState,
+                                            enableBlur = enableBlur,
+                                            enableFloatingBottomBar = false,
+                                            enableLiquidGlass = false,
+                                            hazeState = hazeState,
+                                            hazeStyle = hazeStyle,
+                                            backdrop = backdrop,
+                                        )
+                                    }
+                                }
+                            }
                         } // end LocalExternalNavEvent CompositionLocalProvider
                     } // end Scaffold content
+                    
 
                 // Update dialog
                 if (showUpdateDialog) {
