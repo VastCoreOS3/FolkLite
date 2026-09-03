@@ -1,5 +1,4 @@
 package me.bmax.apatch.ui.screen
-
 import android.os.Build
 import android.system.Os
 import android.content.SharedPreferences
@@ -75,7 +74,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.annotation.StringRes
 import androidx.lifecycle.compose.dropUnlessResumed
-import me.bmax.apatch.ui.screen.TabNavigator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import me.bmax.apatch.APApplication
@@ -91,6 +89,7 @@ import me.bmax.apatch.util.checkNewVersion
 import me.bmax.apatch.util.getSELinuxStatus
 import me.bmax.apatch.util.reboot
 import top.yukonga.miuix.kmp.basic.Button
+import top.yukonga.miuix.kmp.basic.ButtonDefaults
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.CardDefaults
 import top.yukonga.miuix.kmp.basic.DropdownImpl
@@ -99,7 +98,6 @@ import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.ListPopupColumn
 import top.yukonga.miuix.kmp.basic.ListPopupDefaults
 import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
-import top.yukonga.miuix.kmp.basic.ScrollBehavior
 import top.yukonga.miuix.kmp.basic.PopupPositionProvider
 import top.yukonga.miuix.kmp.basic.Scaffold
 import top.yukonga.miuix.kmp.basic.Text
@@ -110,7 +108,6 @@ import top.yukonga.miuix.kmp.extra.SuperDialog
 import top.yukonga.miuix.kmp.extra.SuperListPopup
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme
-import top.yukonga.miuix.kmp.basic.ButtonDefaults
 import top.yukonga.miuix.kmp.utils.PressFeedbackType
 import top.yukonga.miuix.kmp.utils.overScrollVertical
 
@@ -120,7 +117,6 @@ private val managerVersion = getManagerVersion()
 fun HomeScreen(navigator: TabNavigator) {
     val prefs = APApplication.sharedPreferences
     var homeLayout by remember { mutableStateOf(prefs.getString("home_layout_style", "classic") ?: "classic") }
-
     DisposableEffect(prefs) {
         val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
             if (key == "home_layout_style") {
@@ -130,9 +126,7 @@ fun HomeScreen(navigator: TabNavigator) {
         prefs.registerOnSharedPreferenceChangeListener(listener)
         onDispose { prefs.unregisterOnSharedPreferenceChangeListener(listener) }
     }
-
     when (homeLayout) {
-        "list" -> ListHomeScreen(navigator)
         "default" -> MainHomeScreen(navigator)
         else -> ClassicHomeScreen(navigator)
     }
@@ -141,7 +135,6 @@ fun HomeScreen(navigator: TabNavigator) {
 @Composable
 fun MainHomeScreen(navigator: TabNavigator) {
     val scrollBehavior = MiuixScrollBehavior()
-
     val kpState by APApplication.kpStateLiveData.observeAsState(APApplication.State.UNKNOWN_STATE)
     val apStateRaw by APApplication.apStateLiveData.observeAsState(APApplication.State.UNKNOWN_STATE)
     val apState = if (apStateRaw == APApplication.State.ANDROIDPATCH_NEED_UPDATE && apApp.isAndroidPatchUpdateBlocked()) {
@@ -149,7 +142,6 @@ fun MainHomeScreen(navigator: TabNavigator) {
     } else {
         apStateRaw
     }
-
     Scaffold(
         topBar = {
             TopBar(
@@ -186,8 +178,6 @@ fun MainHomeScreen(navigator: TabNavigator) {
                         apState = apState,
                         navigator = navigator
                     )
-
-                    // AndroidPatch Install Card (Only when KernelPatch installed but AndroidPatch not installed)
                     if (kpState != APApplication.State.UNKNOWN_STATE && apState != APApplication.State.ANDROIDPATCH_INSTALLED) {
                         AStatusCard(
                             apState = apState,
@@ -195,16 +185,79 @@ fun MainHomeScreen(navigator: TabNavigator) {
                             navigator = navigator
                         )
                     }
-
-                    // Update checking is now handled in MainActivity with a dialog on app launch
-                    // val checkUpdate =
-                    //     APApplication.sharedPreferences.getBoolean("check_update", true)
-                    // if (checkUpdate) {
-                    //     UpdateCard()
-                    // }
                     InfoCard(kpState, apState)
+                    var hideAboutCard by remember {
+                        mutableStateOf(APApplication.sharedPreferences.getBoolean("hide_about_card", true))
+                    }
+                    DisposableEffect(Unit) {
+                        val listener = SharedPreferences.OnSharedPreferenceChangeListener { prefs, key ->
+                            if (key == "hide_about_card") {
+                                hideAboutCard = prefs.getBoolean("hide_about_card", true)
+                            }
+                        }
+                        APApplication.sharedPreferences.registerOnSharedPreferenceChangeListener(listener)
+                        onDispose { APApplication.sharedPreferences.unregisterOnSharedPreferenceChangeListener(listener) }
+                    }
+                    if (!hideAboutCard) {
+                        LearnMoreCard()
+                    }
+                }
+            }
+        }
+    }
+}
 
-                    // About card - can be hidden in settings
+// ========= ClassicHomeScreen 迁移到此，原HomeClassic.kt删除 =========
+@Composable
+fun ClassicHomeScreen(navigator: TabNavigator) {
+    val scrollBehavior = MiuixScrollBehavior()
+    val kpState by APApplication.kpStateLiveData.observeAsState(APApplication.State.UNKNOWN_STATE)
+    val apStateRaw by APApplication.apStateLiveData.observeAsState(APApplication.State.UNKNOWN_STATE)
+    val apState = if (apStateRaw == APApplication.State.ANDROIDPATCH_NEED_UPDATE && apApp.isAndroidPatchUpdateBlocked()) {
+        APApplication.State.ANDROIDPATCH_INSTALLED
+    } else {
+        apStateRaw
+    }
+    Scaffold(
+        topBar = {
+            TopBar(
+                onInstallClick = dropUnlessResumed {
+                    navigator.navigate("install_mode_select")
+                },
+                navigator,
+                kpState,
+                scrollBehavior = scrollBehavior
+            )
+        },
+        popupHost = { },
+    ) { innerPadding ->
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(top = innerPadding.calculateTopPadding())
+                .overScrollVertical()
+                .nestedScroll(scrollBehavior.nestedScrollConnection),
+            contentPadding = PaddingValues(
+                start = 16.dp,
+                end = 16.dp,
+                top = 12.dp,
+                bottom = innerPadding.calculateBottomPadding() + 100.dp
+            )
+        ) {
+            item {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    BackupWarningCard()
+                    ClassicWorkCard(
+                        kpState = kpState,
+                        apState = apState,
+                        navigator = navigator
+                    )
+                    if (kpState != APApplication.State.UNKNOWN_STATE && apState != APApplication.State.ANDROIDPATCH_INSTALLED) {
+                        AStatusCard(apState = apState, kpState = kpState, navigator = navigator)
+                    }
+                    InfoCard(kpState, apState)
                     var hideAboutCard by remember {
                         mutableStateOf(APApplication.sharedPreferences.getBoolean("hide_about_card", true))
                     }
@@ -227,6 +280,159 @@ fun MainHomeScreen(navigator: TabNavigator) {
 }
 
 @Composable
+private fun ClassicWorkCard(
+    kpState: APApplication.State,
+    apState: APApplication.State,
+    navigator: TabNavigator
+) {
+    val showAuthFailedTipDialog = remember { mutableStateOf(false) }
+    AuthFailedTipDialog(showAuthFailedTipDialog)
+    val showAuthKeyDialog = remember { mutableStateOf(false) }
+    AuthSuperKey(showAuthKeyDialog, showAuthFailedTipDialog)
+    val prefs = APApplication.sharedPreferences
+    val colorMode = prefs.getInt("color_mode", 0)
+    val isMonet = colorMode < 3
+    val isDark = isInDarkTheme(colorMode)
+    val cardBg = when (kpState) {
+        APApplication.State.KERNELPATCH_INSTALLED -> when {
+            isMonet -> colorScheme.primaryContainer
+            isDark -> Color(0xFF1A3825)
+            else -> Color(0xFFDFFAE4)
+        }
+        APApplication.State.KERNELPATCH_NEED_UPDATE -> colorScheme.secondaryContainer
+        APApplication.State.KERNELPATCH_NEED_REBOOT -> colorScheme.errorContainer
+        else -> when {
+            isMonet -> colorScheme.secondaryContainer
+            isDark -> Color(0xFF2A2A2A)
+            else -> Color(0xFFF0F0F0)
+        }
+    }
+    val contentColor = if (isDark) Color.White else Color.Black
+    val decoIconColor = when (kpState) {
+        APApplication.State.KERNELPATCH_INSTALLED -> if (isMonet) {
+            colorScheme.primary.copy(alpha = 0.8f)
+        } else {
+            Color(0xFF36D167)
+        }
+        APApplication.State.KERNELPATCH_NEED_UPDATE -> colorScheme.secondary
+        APApplication.State.KERNELPATCH_NEED_REBOOT -> colorScheme.error
+        else -> colorScheme.outline
+    }
+    Card(
+        modifier = Modifier.height(140.dp),
+        colors = CardDefaults.defaultColors(color = cardBg),
+        onClick = {
+            when (kpState) {
+                APApplication.State.UNKNOWN_STATE -> {
+                    showAuthKeyDialog.value = true
+                }
+                APApplication.State.KERNELPATCH_NEED_UPDATE -> {
+                    if (Version.installedKPVUInt() < 0x900u) {
+                        navigator.navigate("patches/${PatchesViewModel.PatchMode.PATCH_ONLY.ordinal}")
+                    } else {
+                        navigator.navigate("install_mode_select")
+                    }
+                }
+                APApplication.State.KERNELPATCH_NEED_REBOOT -> {
+                    reboot()
+                }
+                else -> {
+                    if (apState == APApplication.State.ANDROIDPATCH_INSTALLED || apState == APApplication.State.ANDROIDPATCH_NEED_UPDATE) {
+                        navigator.navigate("uninstall_mode_select")
+                    } else {
+                        navigator.navigate("patches/${PatchesViewModel.PatchMode.UNPATCH.ordinal}")
+                    }
+                }
+            }
+        },
+        showIndication = true,
+        pressFeedbackType = PressFeedbackType.Tilt
+    ) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .offset(50.dp, 30.dp),
+                contentAlignment = Alignment.BottomEnd
+            ) {
+                Icon(
+                    modifier = Modifier.size(170.dp),
+                    imageVector = when (kpState) {
+                        APApplication.State.KERNELPATCH_INSTALLED -> Icons.Rounded.CheckCircleOutline
+                        APApplication.State.KERNELPATCH_NEED_UPDATE -> Icons.Outlined.SystemUpdate
+                        APApplication.State.KERNELPATCH_NEED_REBOOT -> Icons.Filled.Refresh
+                        else -> Icons.Rounded.ErrorOutline
+                    },
+                    tint = decoIconColor,
+                    contentDescription = null
+                )
+            }
+            Row(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(start = 16.dp, end = 16.dp, top = 20.dp),
+                verticalAlignment = Alignment.Top
+            ) {
+                if (kpState != APApplication.State.KERNELPATCH_INSTALLED &&
+                    kpState != APApplication.State.UNKNOWN_STATE) {
+                    Icon(
+                        imageVector = when (kpState) {
+                            APApplication.State.KERNELPATCH_NEED_UPDATE -> Icons.Outlined.SystemUpdate
+                            APApplication.State.KERNELPATCH_NEED_REBOOT -> Icons.Filled.Refresh
+                            else -> Icons.Rounded.ErrorOutline
+                        },
+                        contentDescription = null,
+                        modifier = Modifier.size(24.dp),
+                        tint = contentColor
+                    )
+                    Spacer(Modifier.width(24.dp))
+                }
+                Column {
+                    Text(
+                        text = when (kpState) {
+                            APApplication.State.KERNELPATCH_INSTALLED -> stringResource(R.string.home_working)
+                            APApplication.State.KERNELPATCH_NEED_UPDATE -> stringResource(R.string.home_need_update)
+                            APApplication.State.KERNELPATCH_NEED_REBOOT -> stringResource(R.string.home_ap_cando_reboot)
+                            else -> stringResource(R.string.home_not_installed)
+                        },
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = contentColor,
+                    )
+                    Spacer(Modifier.height(2.dp))
+                    Text(
+                        text = when (kpState) {
+                            APApplication.State.KERNELPATCH_INSTALLED ->
+                                "${managerVersion.first} (${managerVersion.second})"
+                            APApplication.State.KERNELPATCH_NEED_UPDATE ->
+                                "${Version.installedKPVString()} → ${Version.buildKPVString()}"
+                            APApplication.State.UNKNOWN_STATE ->
+                                stringResource(R.string.home_click_to_install)
+                            else -> ""
+                        },
+                        fontSize = 16.sp,
+                        color = contentColor,
+                    )
+                    Spacer(Modifier.height(27.dp))
+                    if (kpState == APApplication.State.KERNELPATCH_INSTALLED) {
+                        Text(
+                            text = if (apState == APApplication.State.ANDROIDPATCH_NOT_INSTALLED) {
+                                "Pattern: KernelPatch"
+                            } else {
+                                "Pattern: Full"
+                            },
+                            fontSize = 16.8.sp,
+                            color = contentColor,
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+// ========= 下面全部是原有Home.kt公共组件保持不变 =========
+@Composable
 fun AuthFailedTipDialog(showDialog: MutableState<Boolean>) {
     SuperDialog(
         title = stringResource(R.string.home_dialog_auth_fail_title),
@@ -235,7 +441,6 @@ fun AuthFailedTipDialog(showDialog: MutableState<Boolean>) {
         onDismissRequest = { showDialog.value = false },
     ) {
         Spacer(Modifier.height(12.dp))
-
         Row {
             TextButton(
                 stringResource(android.R.string.ok),
@@ -256,16 +461,13 @@ fun AuthSuperKey(showDialog: MutableState<Boolean>, showFailedDialog: MutableSta
     var key by remember { mutableStateOf("") }
     var keyVisible by remember { mutableStateOf(false) }
     var enable by remember { mutableStateOf(false) }
-
     SuperDialog(
         show = showDialog.value,
         title = stringResource(R.string.home_auth_key_title),
         summary = stringResource(R.string.home_auth_key_desc),
         onDismissRequest = { showDialog.value = false }
     ) {
-
         Box(contentAlignment = Alignment.CenterEnd) {
-
             TextField(
                 value = key,
                 onValueChange = {
@@ -278,7 +480,6 @@ fun AuthSuperKey(showDialog: MutableState<Boolean>, showFailedDialog: MutableSta
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                 modifier = Modifier.fillMaxWidth()
             )
-
             IconButton(
                 modifier = Modifier
                     .size(40.dp)
@@ -292,22 +493,17 @@ fun AuthSuperKey(showDialog: MutableState<Boolean>, showFailedDialog: MutableSta
                 )
             }
         }
-
         Spacer(Modifier.height(12.dp))
-
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.End
         ) {
-
             TextButton(
                 stringResource(id = android.R.string.cancel),
                 onClick = { showDialog.value = false },
                 modifier = Modifier.weight(1f),
             )
-
             Spacer(Modifier.width(20.dp))
-
             TextButton(
                 stringResource(id = android.R.string.ok),
                 onClick = {
@@ -334,7 +530,6 @@ private fun TopBar(
     val uriHandler = LocalUriHandler.current
     val showDropdownMoreOptions = remember { mutableStateOf(false) }
     val howDropdownReboot = remember { mutableStateOf(false) }
-
     val rebootItems = listOf(
         stringResource(R.string.reboot),
         stringResource(R.string.reboot_recovery),
@@ -343,12 +538,10 @@ private fun TopBar(
         stringResource(R.string.reboot_edl),
         stringResource(R.string.reboot_fastbootd),
     )
-
     val moreItems = listOf(
         stringResource(R.string.home_more_menu_feedback_or_suggestion),
         stringResource(R.string.home_more_menu_about)
     )
-
     TopAppBar(
         title = stringResource(R.string.app_name),
         actions = {
@@ -358,7 +551,6 @@ private fun TopBar(
                     contentDescription = stringResource(id = R.string.mode_select_page_title)
                 )
             }
-
             if (kpState != APApplication.State.UNKNOWN_STATE) {
                 IconButton(onClick = {
                     howDropdownReboot.value = true
@@ -367,7 +559,6 @@ private fun TopBar(
                         imageVector = Icons.Filled.Refresh,
                         contentDescription = stringResource(id = R.string.reboot)
                     )
-
                     SuperListPopup(
                         show = howDropdownReboot.value,
                         popupPositionProvider = ListPopupDefaults.ContextMenuPositionProvider,
@@ -398,14 +589,12 @@ private fun TopBar(
                     }
                 }
             }
-
             Box {
                 IconButton(onClick = { showDropdownMoreOptions.value = true }) {
                     Icon(
                         imageVector = Icons.Filled.MoreVert,
                         contentDescription = stringResource(id = R.string.settings)
                     )
-
                     SuperListPopup(
                         show = showDropdownMoreOptions.value,
                         popupPositionProvider = ListPopupDefaults.ContextMenuPositionProvider,
@@ -436,7 +625,6 @@ private fun TopBar(
     )
 }
 
-
 @Composable
 private fun StatusCard(
     kpState: APApplication.State,
@@ -445,20 +633,16 @@ private fun StatusCard(
 ) {
     val showAuthFailedTipDialog = remember { mutableStateOf(false) }
     AuthFailedTipDialog(showAuthFailedTipDialog)
-
     val showAuthKeyDialog = remember { mutableStateOf(false) }
     AuthSuperKey(showAuthKeyDialog, showAuthFailedTipDialog)
-
     val showUninstallDialog = remember { mutableStateOf(false) }
     if (showUninstallDialog.value) {
         UninstallDialog(showDialog = showUninstallDialog, navigator)
     }
-
     val prefs = APApplication.sharedPreferences
     val colorMode = prefs.getInt("color_mode", 0)
     val isMonet = colorMode < 3
     val isDark = isInDarkTheme(colorMode)
-
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -466,7 +650,6 @@ private fun StatusCard(
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        // Main Status Card (Left - Large)
         Card(
             modifier = Modifier
                 .weight(1f)
@@ -511,7 +694,6 @@ private fun StatusCard(
             pressFeedbackType = PressFeedbackType.Tilt
         ) {
             Box(modifier = Modifier.fillMaxSize()) {
-                // Decorative icon at bottom-right
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -539,8 +721,6 @@ private fun StatusCard(
                         contentDescription = null
                     )
                 }
-
-                // Status text at top-left
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
@@ -555,14 +735,12 @@ private fun StatusCard(
                         APApplication.State.KERNELPATCH_NEED_REBOOT -> stringResource(R.string.home_ap_cando_reboot)
                         else -> stringResource(R.string.home_not_installed)
                     }
-
                     Text(
                         modifier = Modifier.fillMaxWidth(),
                         text = statusText,
                         fontSize = 20.sp,
                         fontWeight = FontWeight.SemiBold,
                     )
-
                     Spacer(Modifier.height(2.dp))
                     Text(
                         modifier = Modifier.fillMaxWidth(),
@@ -580,14 +758,11 @@ private fun StatusCard(
                 }
             }
         }
-
-        // Right Column with two cards
         Column(
             modifier = Modifier
                 .weight(1f)
                 .fillMaxHeight()
         ) {
-            // KernelPatch Info Card (Top Right)
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -638,10 +813,7 @@ private fun StatusCard(
                     )
                 }
             }
-
             Spacer(Modifier.height(12.dp))
-
-            // AndroidPatch Status Card (Bottom Right)
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -658,9 +830,7 @@ private fun StatusCard(
                                 APApplication.installApatch()
                             }
                         }
-                        else -> {
-                            // Not installed - do nothing (no trigger effect)
-                        }
+                        else -> {}
                     }
                 },
                 showIndication = apState != APApplication.State.ANDROIDPATCH_NOT_INSTALLED,
@@ -700,7 +870,6 @@ private fun StatusCard(
         }
     }
 }
-
 
 @Composable
 fun AStatusCard(
@@ -745,7 +914,6 @@ fun AStatusCard(
                         .weight(2f)
                         .padding(start = 16.dp)
                 ) {
-
                     Text(
                         text = stringResource(
                             when (apState) {
@@ -771,7 +939,6 @@ fun AStatusCard(
                                             APApplication.installApatch()
                                         }
                                     }
-
                                     else -> {}
                                 }
                             },
@@ -784,7 +951,6 @@ fun AStatusCard(
                                     APApplication.State.ANDROIDPATCH_NEED_UPDATE -> {
                                         Text(text = stringResource(id = R.string.home_ap_cando_update), color = Color.White)
                                     }
-
                                     else -> {
                                         Text(text = stringResource(id = R.string.home_ap_cando_install), color = Color.White)
                                     }
@@ -797,7 +963,6 @@ fun AStatusCard(
         }
     }
 }
-
 
 @Composable
 fun BackupWarningCard() {
@@ -835,9 +1000,7 @@ fun BackupWarningCard() {
                             text = stringResource(id = R.string.patch_warnning),
                             color = Color.White
                         )
-
                         Spacer(Modifier.width(12.dp))
-
                         Icon(
                             Icons.Outlined.Clear,
                             contentDescription = "",
@@ -878,46 +1041,34 @@ private fun InfoCard(kpState: APApplication.State, apState: APApplication.State)
         ) {
             val contents = StringBuilder()
             val uname = Os.uname()
-
             @Composable
             fun InfoCardItem(label: String, content: String) {
                 contents.appendLine(label).appendLine(content).appendLine()
                 Text(text = label, style = MiuixTheme.textStyles.body1)
                 Text(text = content, style = MiuixTheme.textStyles.body2)
             }
-
             if (kpState != APApplication.State.UNKNOWN_STATE) {
                 InfoCardItem(
                     stringResource(R.string.home_kpatch_version), Version.installedKPVString()
                 )
-
                 Spacer(Modifier.height(16.dp))
                 InfoCardItem(stringResource(R.string.home_su_path), Natives.suPath())
-
                 Spacer(Modifier.height(16.dp))
             }
-
             if (apState != APApplication.State.UNKNOWN_STATE && apState != APApplication.State.ANDROIDPATCH_NOT_INSTALLED) {
                 InfoCardItem(
                     stringResource(R.string.home_apatch_version), managerVersion.second.toString()
                 )
                 Spacer(Modifier.height(16.dp))
             }
-
             InfoCardItem(stringResource(R.string.home_device_info), getDeviceInfo())
-
             Spacer(Modifier.height(16.dp))
             InfoCardItem(stringResource(R.string.home_kernel), uname.release)
-
             Spacer(Modifier.height(16.dp))
             InfoCardItem(stringResource(R.string.home_system_version), getSystemVersion())
-
             Spacer(Modifier.height(16.dp))
             InfoCardItem(stringResource(R.string.home_fingerprint), Build.FINGERPRINT)
-
             Spacer(Modifier.height(16.dp))
-
-            // Zygisk 检测
             var zygiskImplement by remember { mutableStateOf("None") }
             LaunchedEffect(Unit) {
                 withContext(Dispatchers.IO) {
@@ -932,9 +1083,7 @@ private fun InfoCard(kpState: APApplication.State, apState: APApplication.State)
                 InfoCardItem(stringResource(R.string.home_zygisk_implement), zygiskImplement)
                 Spacer(Modifier.height(16.dp))
             }
-
             InfoCardItem(stringResource(R.string.home_selinux_status), getSELinuxStatus())
-
         }
     }
 }
@@ -970,11 +1119,9 @@ fun UpdateCard() {
     val newVersionCode = newVersion.versionCode
     val newVersionUrl = newVersion.downloadUrl
     val changelog = newVersion.changelog
-
     val uriHandler = LocalUriHandler.current
     val title = stringResource(id = R.string.apm_changelog)
     val updateText = stringResource(id = R.string.apm_update)
-
     AnimatedVisibility(
         visible = newVersionCode > currentVersionCode,
         enter = fadeIn() + expandVertically(),
@@ -999,7 +1146,6 @@ fun UpdateCard() {
 @Composable
 fun LearnMoreCard() {
     val uriHandler = LocalUriHandler.current
-
     Card {
         Row(
             modifier = Modifier
@@ -1044,10 +1190,8 @@ private enum class ApatchUninstallOption(
 @Composable
 fun UninstallDialog(showDialog: MutableState<Boolean>, navigator: TabNavigator) {
     if (!showDialog.value) return
-
     val options = remember { listOf(ApatchUninstallOption.PATCH_ONLY, ApatchUninstallOption.FULL) }
     var selectedOption by remember { mutableStateOf<ApatchUninstallOption?>(null) }
-
     SuperDialog(
         title = stringResource(R.string.home_dialog_uninstall_title),
         show = showDialog.value,
@@ -1059,7 +1203,6 @@ fun UninstallDialog(showDialog: MutableState<Boolean>, navigator: TabNavigator) 
         ) {
             options.forEach { option ->
                 val isSelected = selectedOption == option
-
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -1126,9 +1269,7 @@ fun UninstallDialog(showDialog: MutableState<Boolean>, navigator: TabNavigator) 
                 }
             }
         }
-
         Spacer(Modifier.height(12.dp))
-
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.End
@@ -1138,9 +1279,7 @@ fun UninstallDialog(showDialog: MutableState<Boolean>, navigator: TabNavigator) 
                 onClick = { showDialog.value = false },
                 modifier = Modifier.weight(1f),
             )
-
             Spacer(Modifier.width(20.dp))
-
             TextButton(
                 stringResource(id = R.string.home_ap_cando_uninstall),
                 onClick = {
@@ -1149,13 +1288,11 @@ fun UninstallDialog(showDialog: MutableState<Boolean>, navigator: TabNavigator) 
                             showDialog.value = false
                             APApplication.uninstallApatch()
                         }
-
                         ApatchUninstallOption.FULL -> {
                             showDialog.value = false
                             APApplication.uninstallApatch()
                             navigator.navigate("uninstall_mode_select")
                         }
-
                         null -> {}
                     }
                 },
