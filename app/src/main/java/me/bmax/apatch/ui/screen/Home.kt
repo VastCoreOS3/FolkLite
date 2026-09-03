@@ -405,7 +405,7 @@ private fun ClassicWorkCard(
                     Text(
                         text = when (kpState) {
                             APApplication.State.KERNELPATCH_INSTALLED ->
-                                "${managerVersion.first} (${managerVersion.second})"
+                                stringResource(R.string.kpatch_version, managerVersion.first, managerVersion.second)
                             APApplication.State.KERNELPATCH_NEED_UPDATE ->
                                 "${Version.installedKPVString()} → ${Version.buildKPVString()}"
                             APApplication.State.UNKNOWN_STATE ->
@@ -748,7 +748,7 @@ private fun StatusCard(
                         modifier = Modifier.fillMaxWidth(),
                         text = when (kpState) {
                             APApplication.State.KERNELPATCH_INSTALLED ->
-                                stringResource(R.string.kpatch_version, managerVersion.first)
+                                stringResource(R.string.kpatch_version, managerVersion.first, managerVersion.second)
                             APApplication.State.KERNELPATCH_NEED_UPDATE ->
                                 "${Version.installedKPVString()} → ${Version.buildKPVString()}"
                             else -> stringResource(R.string.home_click_to_install)
@@ -1049,20 +1049,28 @@ private fun InfoCard(kpState: APApplication.State, apState: APApplication.State)
                 Text(text = label, style = MiuixTheme.textStyles.body1)
                 Text(text = content, style = MiuixTheme.textStyles.body2)
             }
+            // // 第一组：KP版本 InfoCardItem
+            // if (kpState != APApplication.State.UNKNOWN_STATE) {
+                // InfoCardItem(
+                    // stringResource(R.string.home_kpatch_version),
+                    // Version.installedKPVString()
+                // )
+                // Spacer(Modifier.height(16.dp))
+            // }
+            // 第二组：SU路径 InfoCardItem
             if (kpState != APApplication.State.UNKNOWN_STATE) {
                 InfoCardItem(
-                    stringResource(R.string.home_kpatch_version), Version.installedKPVString()
-                )
-                Spacer(Modifier.height(16.dp))
-                InfoCardItem(stringResource(R.string.home_su_path), Natives.suPath())
-                Spacer(Modifier.height(16.dp))
-            }
-            if (apState != APApplication.State.UNKNOWN_STATE && apState != APApplication.State.ANDROIDPATCH_NOT_INSTALLED) {
-                InfoCardItem(
-                    stringResource(R.string.home_apatch_version), managerVersion.second.toString()
+                    stringResource(R.string.home_su_path),
+                    Natives.suPath()
                 )
                 Spacer(Modifier.height(16.dp))
             }
+            // if (apState != APApplication.State.UNKNOWN_STATE && apState != APApplication.State.ANDROIDPATCH_NOT_INSTALLED) {
+                // InfoCardItem(
+                    // stringResource(R.string.home_apatch_version), managerVersion.second.toString()
+                // )
+                // Spacer(Modifier.height(16.dp))
+            // }
             InfoCardItem(stringResource(R.string.home_device_info), getDeviceInfo())
             Spacer(Modifier.height(16.dp))
             InfoCardItem(stringResource(R.string.home_kernel), uname.release)
