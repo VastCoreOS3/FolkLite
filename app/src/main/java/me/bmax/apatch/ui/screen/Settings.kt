@@ -219,12 +219,12 @@ fun SettingScreen(navigator: TabNavigator) {
             mutableStateOf(VisualConfig.enableFloatingBottomBar)
         }
 
+        // 移除 list 选项，仅保留 default / classic
         val homeLayoutItems = listOf(
-            stringResource(id = R.string.settings_home_layout_list),
             stringResource(id = R.string.settings_home_layout_default),
             stringResource(id = R.string.settings_home_layout_classic)
         )
-        val homeLayoutValues = listOf("list", "default", "classic")
+        val homeLayoutValues = listOf("default", "classic")
         var currentHomeLayout by rememberSaveable { mutableStateOf(prefs.getString("home_layout_style", "classic") ?: "classic") }
         val homeLayoutIndex = homeLayoutValues.indexOf(currentHomeLayout).let { if (it == -1) 0 else it }
 
