@@ -415,6 +415,15 @@ private fun ClassicWorkCard(
                         fontSize = 16.sp,
                         color = contentColor,
                     )
+                    // ========= KP版本：单行Text，替代InfoCardItem =========
+                    if (kpState != APApplication.State.UNKNOWN_STATE) {
+                        Text(
+                            text = stringResource(R.string.kernel_patch) + ": " + Version.installedKPVString(),
+                            fontSize = 16.sp,
+                            color = contentColor,
+                        )
+                        Spacer(Modifier.height(16.dp))
+                    }
                     Spacer(Modifier.height(27.dp))
                     if (kpState == APApplication.State.KERNELPATCH_INSTALLED) {
                         Text(
