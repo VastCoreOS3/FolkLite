@@ -419,12 +419,12 @@ private fun ClassicWorkCard(
                     Spacer(Modifier.height(2.dp))
                     if (kpState != APApplication.State.UNKNOWN_STATE) {
                         Text(
-                            text = stringResource(R.string.kernel_versions) + ": " +  Version.installedKPVString(),
+                            text = stringResource(R.string.kernel_versions) + ":  " + Version.installedKPVString(),
                             fontSize = 16.sp,
                             color = contentColor,
                         )
                     }
-                    Spacer(Modifier.height(8.dp))
+                    Spacer(Modifier.height(2.dp))
                     if (kpState == APApplication.State.KERNELPATCH_INSTALLED) {
                         Text(
                             text = if (apState == APApplication.State.ANDROIDPATCH_NOT_INSTALLED) {
@@ -432,7 +432,7 @@ private fun ClassicWorkCard(
                             } else {
                                 "模式:  Full"
                             },
-                            fontSize = 16.8.sp,
+                            fontSize = 16.sp,
                             color = contentColor,
                         )
                     }
