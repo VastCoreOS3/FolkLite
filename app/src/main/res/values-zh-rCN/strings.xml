@@ -20,6 +20,7 @@
     <string name="reboot_recovery">重启至 Recovery</string>
     <string name="home_learn_apatch">了解 FolkLite</string>
     <string name="kernel_patch">内核补丁</string>
+    <string name="kernel_versions">内核</string>
     <string name="home_click_to_install">点此安装</string>
     <string name="about">关于</string>
     <string name="reboot">重启</string>
