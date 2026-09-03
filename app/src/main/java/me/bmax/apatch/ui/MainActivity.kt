@@ -637,7 +637,6 @@ private fun BottomBar(
                     Modifier.defaultHazeEffect(hazeState, hazeStyle)
                 } else Modifier,
                 color = if (enableBlur) Color.Transparent else MiuixTheme.colorScheme.surface,
-                showDivider = false,
                 content = {
                     visibleDestinations.forEachIndexed { index, destination ->
                         NavigationBarItem(
