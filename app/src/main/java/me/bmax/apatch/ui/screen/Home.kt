@@ -405,7 +405,7 @@ private fun ClassicWorkCard(
                     Text(
                         text = when (kpState) {
                             APApplication.State.KERNELPATCH_INSTALLED ->
-                                stringResource(R.string.apatch_version, managerVersion.first, managerVersion.second)
+                                stringResource(R.string.apatch_version,  managerVersion.first, managerVersion.second)
                             APApplication.State.KERNELPATCH_NEED_UPDATE ->
                                 "${Version.installedKPVString()} → ${Version.buildKPVString()}"
                             APApplication.State.UNKNOWN_STATE ->
