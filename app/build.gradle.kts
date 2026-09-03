@@ -95,7 +95,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "mi.yuki.folk"
+        applicationId = "me.bmax.apatch"
         buildConfigField("String", "buildKPV", "\"$kernelPatchVersion\"")
         buildConfigField("boolean", "DEBUG_FAKE_ROOT", localProperties.getProperty("debug.fake_root", "false"))
 
@@ -124,7 +124,7 @@ android {
             }
         }
 
-        base.archivesName = "FolkLite_${managerVersionCode}_${managerVersionName}_${branchName}"
+        base.archivesName = "VeyraSU_${managerVersionCode}_${managerVersionName}_${branchName}"
     }
 
     compileOptions {
