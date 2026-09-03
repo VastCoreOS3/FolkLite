@@ -416,21 +416,21 @@ private fun ClassicWorkCard(
                         color = contentColor,
                     )
                     // ========= KP版本：单行Text，替代InfoCardItem =========
+                    Spacer(Modifier.height(2.dp))
                     if (kpState != APApplication.State.UNKNOWN_STATE) {
                         Text(
-                            text = stringResource(R.string.kernel_patch) + ": " + Version.installedKPVString(),
+                            text = stringResource(R.string.kernel_versions) + ": " + Version.installedKPVString(),
                             fontSize = 16.sp,
                             color = contentColor,
                         )
-                        Spacer(Modifier.height(16.dp))
                     }
                     Spacer(Modifier.height(27.dp))
                     if (kpState == APApplication.State.KERNELPATCH_INSTALLED) {
                         Text(
                             text = if (apState == APApplication.State.ANDROIDPATCH_NOT_INSTALLED) {
-                                "Pattern: KernelPatch"
+                                "模式: KernelPatch"
                             } else {
-                                "Pattern: Full"
+                                "模式: Full"
                             },
                             fontSize = 16.8.sp,
                             color = contentColor,
