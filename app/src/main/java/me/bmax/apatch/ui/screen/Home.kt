@@ -405,7 +405,7 @@ private fun ClassicWorkCard(
                     Text(
                         text = when (kpState) {
                             APApplication.State.KERNELPATCH_INSTALLED ->
-                                stringResource(R.string.apatch_version,  managerVersion.first, managerVersion.second)
+                                stringResource(R.string.apatch_version, managerVersion.first, managerVersion.second)
                             APApplication.State.KERNELPATCH_NEED_UPDATE ->
                                 "${Version.installedKPVString()} → ${Version.buildKPVString()}"
                             APApplication.State.UNKNOWN_STATE ->
@@ -419,7 +419,7 @@ private fun ClassicWorkCard(
                     Spacer(Modifier.height(2.dp))
                     if (kpState != APApplication.State.UNKNOWN_STATE) {
                         Text(
-                            text = stringResource(R.string.kernel_versions) + ":  " + Version.installedKPVString(),
+                            text = stringResource(R.string.kernel_versions) + ": " + Version.installedKPVString(),
                             fontSize = 16.sp,
                             color = contentColor,
                         )
@@ -428,9 +428,9 @@ private fun ClassicWorkCard(
                     if (kpState == APApplication.State.KERNELPATCH_INSTALLED) {
                         Text(
                             text = if (apState == APApplication.State.ANDROIDPATCH_NOT_INSTALLED) {
-                                "模式:  KernelPatch"
+                                "模式: KernelPatch"
                             } else {
-                                "模式:  Full"
+                                "模式: Full"
                             },
                             fontSize = 16.sp,
                             color = contentColor,
