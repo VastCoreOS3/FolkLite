@@ -88,6 +88,7 @@ import me.bmax.apatch.util.Version.getManagerVersion
 import me.bmax.apatch.util.checkNewVersion
 import me.bmax.apatch.util.getSELinuxStatus
 import me.bmax.apatch.util.reboot
+// ----------- Miuix‑KMP 导入（重点，ScrollBehavior就在这里）-----------
 import top.yukonga.miuix.kmp.basic.Button
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
 import top.yukonga.miuix.kmp.basic.Card
@@ -100,6 +101,7 @@ import top.yukonga.miuix.kmp.basic.ListPopupDefaults
 import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
 import top.yukonga.miuix.kmp.basic.PopupPositionProvider
 import top.yukonga.miuix.kmp.basic.Scaffold
+import top.yukonga.miuix.kmp.basic.ScrollBehavior // ✅修复Unresolved reference关键导入
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.basic.TextField
