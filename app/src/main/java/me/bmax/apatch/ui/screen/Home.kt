@@ -118,19 +118,19 @@ private val managerVersion = getManagerVersion()
 @Composable
 fun HomeScreen(navigator: TabNavigator) {
     val prefs = APApplication.sharedPreferences
-    var homeLayout by remember { mutableStateOf(prefs.getString("home_layout_style", "classic") ?: "classic") }
+    var homeLayout by remember { mutableStateOf(prefs.getString("home_layout_style", "default") ?: "default") }
     DisposableEffect(prefs) {
         val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
             if (key == "home_layout_style") {
-                homeLayout = prefs.getString("home_layout_style", "classic") ?: "classic"
+                homeLayout = prefs.getString("home_layout_style", "default") ?: "default"
             }
         }
         prefs.registerOnSharedPreferenceChangeListener(listener)
         onDispose { prefs.unregisterOnSharedPreferenceChangeListener(listener) }
     }
     when (homeLayout) {
-        "default" -> MainHomeScreen(navigator)
-        else -> ClassicHomeScreen(navigator)
+        "classic" -> ClassicHomeScreen(navigator)
+        else -> MainHomeScreen(navigator)
     }
 }
 

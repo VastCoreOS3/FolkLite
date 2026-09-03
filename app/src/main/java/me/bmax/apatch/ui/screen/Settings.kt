@@ -225,7 +225,7 @@ fun SettingScreen(navigator: TabNavigator) {
             stringResource(id = R.string.settings_home_layout_classic)
         )
         val homeLayoutValues = listOf("default", "classic")
-        var currentHomeLayout by rememberSaveable { mutableStateOf(prefs.getString("home_layout_style", "classic") ?: "classic") }
+        var currentHomeLayout by rememberSaveable { mutableStateOf(prefs.getString("home_layout_style", "default") ?: "default") }
         val homeLayoutIndex = homeLayoutValues.indexOf(currentHomeLayout).let { if (it == -1) 0 else it }
 
         val floatingBottomPadding = if (LocalEnableFloatingBottomBar.current) 88.dp else 0.dp
