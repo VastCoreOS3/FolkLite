@@ -448,7 +448,7 @@ class MainActivity : AppCompatActivity() {
                                     else Modifier
                                 )
                                 .padding(bottom = if (showBottomBar) {
-                                    if (enableFloatingBottomBar) 0.dp else 70.dp
+                                    if (enableFloatingBottomBar) 0.dp else 65.dp
                                 } else 0.dp)
                                 .then(
                                     if (enableBlur && showBottomBar && hazeState != null) Modifier.hazeSource(state = hazeState)
@@ -531,6 +531,7 @@ private fun BottomBar(
     onUserInteraction: (() -> Unit)? = null,
 ) {
     val state by APApplication.apStateLiveData.observeAsState(APApplication.State.UNKNOWN_STATE)
+
     val prefs = APApplication.sharedPreferences
     var showNavApm by remember { mutableStateOf(prefs.getBoolean("show_nav_apm", true)) }
     var showNavKpm by remember { mutableStateOf(prefs.getBoolean("show_nav_kpm", false)) }
@@ -552,6 +553,7 @@ private fun BottomBar(
 
     val kPatchReady = state != APApplication.State.UNKNOWN_STATE
     val aPatchReady = state == APApplication.State.ANDROIDPATCH_INSTALLED
+
     val visibleDestinations = BottomBarDestination.entries
         .filter { d ->
             !(d.kPatchRequired && !kPatchReady) &&
@@ -567,9 +569,11 @@ private fun BottomBar(
     Crossfade(
         targetState = state,
         label = "BottomBarStateCrossfade"
-    ) {
+    ) { state ->
         val visibleDestinations = visibleDestinations
+
         val selectedIndex = mainPagerState.selectedPage.coerceIn(0, (visibleDestinations.size - 1).coerceAtLeast(0))
+
         val navigateToPage: (index: Int) -> Unit = { index ->
             onUserInteraction?.invoke()
             mainPagerState.animateToPage(index)
@@ -628,39 +632,23 @@ private fun BottomBar(
                 }
             }
         } else {
-            // ========== 普通导航栏：顶部圆角 + 移除顶部分割黑线 ==========
-            val navBarTopCorner = 22.dp
-            val navBgColor = Color(0xFF222428)
-            Box(
-                modifier = Modifier
-                    .clip(
-                        RoundedCornerShape(
-                            topStart = navBarTopCorner,
-                            topEnd = navBarTopCorner,
-                            bottomStart = 0.dp,
-                            bottomEnd = 0.dp
+            NavigationBar(
+                modifier = if (enableBlur && hazeState != null) {
+                    Modifier.defaultHazeEffect(hazeState, hazeStyle)
+                } else Modifier,
+                color = if (enableBlur) Color.Transparent else MiuixTheme.colorScheme.surface,
+                showDivider = false,
+                content = {
+                    visibleDestinations.forEachIndexed { index, destination ->
+                        NavigationBarItem(
+                            icon = if (index == selectedIndex) destination.iconSelected else destination.iconNotSelected,
+                            label = stringResource(destination.label),
+                            selected = index == selectedIndex,
+                            onClick = { navigateToPage(index) }
                         )
-                    )
-                    .background(navBgColor)
-            ) {
-                NavigationBar(
-                    modifier = if (enableBlur && hazeState != null) {
-                        Modifier.defaultHazeEffect(hazeState, hazeStyle)
-                    } else Modifier,
-                    color = if (enableBlur) Color.Transparent else navBgColor,
-                    showDivider = false, // 关闭顶部黑线分割线
-                    content = {
-                        visibleDestinations.forEachIndexed { index, destination ->
-                            NavigationBarItem(
-                                icon = if (index == selectedIndex) destination.iconSelected else destination.iconNotSelected,
-                                label = stringResource(destination.label),
-                                selected = index == selectedIndex,
-                                onClick = { navigateToPage(index) }
-                            )
-                        }
                     }
-                )
-            }
+                }
+            )
         }
     }
 }
